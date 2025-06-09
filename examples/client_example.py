@@ -9,9 +9,11 @@ This script shows how to:
 4. Get experiment assignments
 5. Get layer values
 6. Log events
+7. Query available events
+8. Get team member information
 
 Before running this example:
-1. Set your STATSIG_SERVER_SECRET_KEY environment variable
+1. Set your STATSIG_CONSOLE_API_KEY environment variable
 2. Make sure the Statsig MCP server is available
 """
 
@@ -26,8 +28,9 @@ async def run_example():
     """Run the Statsig MCP client example."""
     
     # Check if the API key is set
-    if not os.getenv("STATSIG_SERVER_SECRET_KEY"):
-        print("❌ Please set STATSIG_SERVER_SECRET_KEY environment variable")
+    if not os.getenv("STATSIG_CONSOLE_API_KEY"):
+        print("❌ Please set STATSIG_CONSOLE_API_KEY environment variable")
+        print("   Get your Console API key from: https://console.statsig.com → Project Settings → Keys & Environments")
         return
     
     # Create server parameters for the Statsig MCP server
@@ -35,7 +38,7 @@ async def run_example():
         command="python",
         args=["-m", "statsig_mcp"],
         env={
-            "STATSIG_SERVER_SECRET_KEY": os.getenv("STATSIG_SERVER_SECRET_KEY"),
+            "STATSIG_CONSOLE_API_KEY": os.getenv("STATSIG_CONSOLE_API_KEY"),
             "STATSIG_ENVIRONMENT": os.getenv("STATSIG_ENVIRONMENT", "development"),
             "STATSIG_DEBUG": "true"  # Enable debug for this example
         }
@@ -154,6 +157,41 @@ async def run_example():
                     print(f"   {content.text}")
             except Exception as e:
                 print(f"❌ Error logging event: {e}")
+            
+            # 6. Query available events
+            print("\n6️⃣ Querying available events...")
+            try:
+                events_result = await session.call_tool("query_events")
+                print("✅ Available events:")
+                for content in events_result:
+                    print(f"   {content.text}")
+            except Exception as e:
+                print(f"❌ Error querying events: {e}")
+            
+            # 7. List team users  
+            print("\n7️⃣ Listing team users...")
+            try:
+                users_result = await session.call_tool("list_team_users")
+                print("✅ Team users:")
+                for content in users_result:
+                    print(f"   {content.text}")
+            except Exception as e:
+                print(f"❌ Error listing team users: {e}")
+            
+            # 8. Get specific user by email (using first team member's email if available)
+            print("\n8️⃣ Getting user by email...")
+            try:
+                # For demonstration, we'll use a sample email
+                # In real usage, you'd use an actual team member's email
+                user_result = await session.call_tool(
+                    "get_user_by_email",
+                    arguments={"email": "admin@example.com"}
+                )
+                print("✅ User details:")
+                for content in user_result:
+                    print(f"   {content.text}")
+            except Exception as e:
+                print(f"❌ Error getting user by email: {e}")
             
             print("\n" + "="*60)
             print("🎉 Statsig MCP example completed!")

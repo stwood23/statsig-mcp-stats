@@ -20,8 +20,8 @@ async def test_import():
         from statsig_mcp.types import FeatureGateResult, StatsigUserAttributes
         print("✅ types module imported successfully")
         
-        from statsig_mcp.statsig_client import StatsigMCPClient
-        print("✅ statsig_client module imported successfully")
+        from statsig_mcp.console_client import StatsigConsoleClient
+        print("✅ console_client module imported successfully")
         
         from statsig_mcp.server import main, server
         print("✅ server module imported successfully")
@@ -34,14 +34,14 @@ async def test_import():
 
 
 async def test_client_creation():
-    """Test that the Statsig client can be created."""
+    """Test that the Statsig Console client can be created."""
     print("\n🔧 Testing client creation...")
     
     try:
-        from statsig_mcp.statsig_client import StatsigMCPClient
+        from statsig_mcp.console_client import StatsigConsoleClient
         
-        client = StatsigMCPClient()
-        print("✅ StatsigMCPClient created successfully")
+        client = StatsigConsoleClient()
+        print("✅ StatsigConsoleClient created successfully")
         
         # Test that initialization fails without API key (expected)
         try:
@@ -49,8 +49,8 @@ async def test_client_creation():
             print("❌ Expected initialization to fail without API key")
             return False
         except ValueError as e:
-            if "STATSIG_SERVER_SECRET_KEY" in str(e):
-                print("✅ Correctly requires STATSIG_SERVER_SECRET_KEY")
+            if "STATSIG_CONSOLE_API_KEY" in str(e):
+                print("✅ Correctly requires STATSIG_CONSOLE_API_KEY")
                 return True
             else:
                 print(f"❌ Unexpected error: {e}")
@@ -120,9 +120,11 @@ async def main():
     if all(results):
         print("\n🎉 All validation tests passed!")
         print("\nTo use the server:")
-        print("1. Set your STATSIG_SERVER_SECRET_KEY environment variable")
-        print("2. Run: python -m statsig_mcp")
-        print("3. Connect using an MCP client")
+        print("1. Set your STATSIG_CONSOLE_API_KEY environment variable")
+        print("   Get it from: https://console.statsig.com → Project Settings → Keys & Environments")
+        print("2. Run: python -m statsig_mcp --api-key console-xxx")
+        print("3. Or with uv: uv run -m statsig_mcp --api-key console-xxx")
+        print("4. Connect using an MCP client or test with MCP Inspector")
         return 0
     else:
         print("\n💥 Some validation tests failed!")
