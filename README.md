@@ -1,59 +1,143 @@
 # Statsig MCP Server
 
-A Model Context Protocol (MCP) server that provides access to Statsig feature flags, dynamic configs, experiments, and event logging through a standard interface.
+Model Context Protocol server for [Statsig](https://statsig.com) feature flags and experimentation platform.
 
-## Overview
-
-This MCP server enables LLMs to interact with [Statsig](https://statsig.com), a feature management and experimentation platform. It exposes Statsig's core functionality as tools that can be called by MCP clients.
+This MCP server enables AI assistants to interact with Statsig's feature management and experimentation platform, allowing them to check feature flags, retrieve dynamic configurations, get experiment assignments, and log custom events.
 
 ## Features
 
-- **Feature Gates**: Check if feature flags are enabled for users
-- **Dynamic Configs**: Retrieve configuration values for different user segments
-- **Experiments & Layers**: Get experiment assignments and layer parameters
-- **Event Logging**: Track custom events and user interactions
-- **User Targeting**: Support for complex user targeting with custom attributes
+- 🚩 **Feature Gate Checking**: Determine if features are enabled for users
+- ⚙️ **Dynamic Configuration**: Retrieve configuration values based on user context
+- 🧪 **Experiment Assignment**: Get experiment variations for A/B testing
+- 📊 **Layer Parameter Access**: Retrieve values from Statsig layers
+- 📈 **Event Logging**: Track custom events for analytics
 
 ## Installation
 
-1. Clone this repository:
+### Using uv (Recommended)
 
 ```bash
-git clone <repository-url>
+# Clone the repository
+git clone https://github.com/GeLi2001/statsig-mcp.git
 cd statsig-mcp
+
+# Install dependencies with uv
+uv sync
+
+# Install with dev dependencies
+uv sync --extra dev
 ```
 
-2. Install dependencies:
+### Using pip
 
 ```bash
+# Install from source
 pip install -e .
+
+# Or install with dev dependencies
+pip install -e ".[dev]"
 ```
 
-## Configuration
+## Quick Start
 
-### Required Environment Variables
+### 1. Run the Server
 
-- `STATSIG_SERVER_SECRET_KEY`: Your Statsig server secret key (get from Statsig console)
-
-### Optional Environment Variables
-
-- `STATSIG_ENVIRONMENT`: Environment tier (e.g., "development", "staging", "production")
-- `STATSIG_API_TIMEOUT`: API timeout in milliseconds (default: 3000)
-- `STATSIG_DISABLE_LOGGING`: Set to "true" to disable event logging (default: false)
-
-## Usage
-
-### Running the Server
+#### With uv (Recommended):
 
 ```bash
-# Set your Statsig server secret key
-export STATSIG_SERVER_SECRET_KEY="secret-your-key-here"
+# Using command-line arguments (MCP best practice)
+uv run -m statsig_mcp --api-key "your-secret-key"
 
-# Optional: Set environment
-export STATSIG_ENVIRONMENT="development"
+# With additional options
+uv run -m statsig_mcp \
+  --api-key "your-secret-key" \
+  --environment "production" \
+  --api-timeout 5000 \
+  --debug
 
-# Run the server
-python -m statsig_mcp.server
+# Or with environment variables
+STATSIG_SERVER_SECRET_KEY="your-key" uv run -m statsig_mcp
+```
+
+#### With Python:
+
+```bash
+# Using flags (recommended)
+python -m statsig_mcp --api-key "your-secret-key"
+
+# Or environment variables
+export STATSIG_SERVER_SECRET_KEY="your-secret-key"
+python -m statsig_mcp
+```
+
+### 2. Configuration Options
+
+The server supports both **command-line arguments** (recommended for MCP) and **environment variables**:
+
+#### Command-Line Arguments (MCP Best Practice)
+
+```bash
+uv run -m statsig_mcp --help
+```
+
+| Argument            | Type   | Default     | Description                          |
+| ------------------- | ------ | ----------- | ------------------------------------ |
+| `--api-key`         | string | None        | Statsig server secret key (required) |
+| `--environment`     | string | development | Environment tier                     |
+| `--api-timeout`     | int    | 3000        | API timeout in milliseconds          |
+| `--disable-logging` | flag   | false       | Disable event logging to Statsig     |
+| `--debug`           | flag   | false       | Enable debug logging                 |
+
+#### Environment Variables (Fallback)
+
+| Variable                    | Description                    |
+| --------------------------- | ------------------------------ |
+| `STATSIG_SERVER_SECRET_KEY` | Statsig server secret key      |
+| `STATSIG_ENVIRONMENT`       | Environment tier               |
+| `STATSIG_API_TIMEOUT`       | API timeout in milliseconds    |
+| `STATSIG_DISABLE_LOGGING`   | Disable logging (true/false)   |
+| `STATSIG_DEBUG`             | Enable debug mode (true/false) |
+
+### 3. MCP Client Configuration
+
+#### Claude Desktop
+
+Add to your `claude_desktop_config.json`:
+
+```json
+{
+  "mcpServers": {
+    "statsig": {
+      "command": "uv",
+      "args": [
+        "run",
+        "-m",
+        "statsig_mcp",
+        "--api-key",
+        "your-secret-key",
+        "--environment",
+        "production"
+      ]
+    }
+  }
+}
+```
+
+#### Alternative with Environment Variables
+
+```json
+{
+  "mcpServers": {
+    "statsig": {
+      "command": "uv",
+      "args": ["run", "-m", "statsig_mcp"],
+      "env": {
+        "STATSIG_SERVER_SECRET_KEY": "your-secret-key",
+        "STATSIG_ENVIRONMENT": "production"
+      }
+    }
+  }
+}
 ```
 
 ### Available Tools
@@ -137,11 +221,15 @@ Log a custom event.
 from mcp import ClientSession, StdioServerParameters
 from mcp.client.stdio import stdio_client
 
-# Create server parameters
+# Create server parameters with flags (recommended)
 server_params = StdioServerParameters(
-    command="python",
-    args=["-m", "statsig_mcp.server"],
-    env={"STATSIG_SERVER_SECRET_KEY": "your-secret-key"}
+    command="uv",
+    args=[
+        "run", "-m", "statsig_mcp",
+        "--api-key", "your-secret-key",
+        "--environment", "production",
+        "--debug"
+    ]
 )
 
 async def main():
@@ -185,6 +273,31 @@ async def main():
 
 ### Setup Development Environment
 
+#### Using uv (Recommended):
+
+```bash
+# Clone and setup
+git clone https://github.com/GeLi2001/statsig-mcp.git
+cd statsig-mcp
+
+# Install all dependencies including dev tools
+uv sync --extra dev
+
+# Run tests
+uv run pytest
+
+# Format code
+uv run black .
+
+# Type checking
+uv run mypy .
+
+# Linting
+uv run ruff check .
+```
+
+#### Using pip:
+
 ```bash
 # Install in development mode with dev dependencies
 pip install -e ".[dev]"
@@ -199,37 +312,82 @@ black .
 mypy .
 ```
 
+### Running Commands
+
+With `uv`, you can run any command in the virtual environment:
+
+```bash
+# Run the server with flags
+uv run -m statsig_mcp --api-key "test-key" --debug
+
+# Run tests with verbose output
+uv run pytest -v
+
+# Run validation script
+uv run python validate.py
+
+# Format and lint
+uv run black .
+uv run ruff check --fix .
+```
+
 ### Project Structure
 
 ```
 statsig_mcp/
 ├── __init__.py
+├── __main__.py        # Module entry point
 ├── server.py          # Main MCP server implementation
 ├── statsig_client.py  # Statsig client wrapper
 └── types.py           # Type definitions
+
+tests/                 # Test suite
+├── test_server.py
+
+pyproject.toml         # Project configuration
+uv.lock               # Locked dependencies (uv)
+.venv/                # Virtual environment (uv managed)
 ```
 
 ## Security Notes
 
 - Never expose your Statsig server secret key in client-side code
-- Use environment variables or secure configuration management for API keys
+- Use command-line arguments or environment variables for API keys
 - The server secret key provides full access to your Statsig project
+- Consider using separate API keys for different environments
+
+## Requirements
+
+- Python 3.10+
+- uv (recommended) or pip for package management
 
 ## Troubleshooting
 
 ### Common Issues
 
-1. **"Statsig not initialized" error**: Ensure `STATSIG_SERVER_SECRET_KEY` is set
-2. **Network timeouts**: Increase `STATSIG_API_TIMEOUT` if needed
+1. **"Statsig not initialized" error**: Ensure `--api-key` is provided or `STATSIG_SERVER_SECRET_KEY` is set
+2. **Network timeouts**: Increase timeout with `--api-timeout 5000`
 3. **Feature gate not found**: Verify the gate name exists in your Statsig console
+4. **Python version error**: This package requires Python 3.10+ (MCP requirement)
 
 ### Debug Mode
 
-Set `STATSIG_DEBUG=true` to enable verbose logging:
+Enable debug logging for troubleshooting:
 
 ```bash
-export STATSIG_DEBUG=true
-python -m statsig_mcp.server
+# With command-line flag (recommended)
+uv run -m statsig_mcp --api-key "your-key" --debug
+
+# With environment variable
+STATSIG_DEBUG=true uv run -m statsig_mcp --api-key "your-key"
+```
+
+### Help
+
+Get help with command-line options:
+
+```bash
+uv run -m statsig_mcp --help
 ```
 
 ## License
@@ -242,10 +400,12 @@ MIT License - see LICENSE file for details.
 2. Create a feature branch
 3. Make your changes
 4. Add tests if applicable
-5. Submit a pull request
+5. Run tests and linting: `uv run pytest && uv run ruff check`
+6. Submit a pull request
 
 ## Resources
 
 - [Statsig Documentation](https://docs.statsig.com)
 - [Model Context Protocol](https://github.com/modelcontextprotocol/python-sdk)
 - [Statsig Python SDK](https://docs.statsig.com/server-core/python-core)
+- [uv Documentation](https://docs.astral.sh/uv/)

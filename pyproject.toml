@@ -3,14 +3,27 @@ name = "statsig-mcp"
 version = "1.0.0"
 description = "Model Context Protocol server for Statsig client SDK"
 authors = [
-    {name = "Statsig MCP", email = "support@statsig.com"}
+    {name = "Ge Li", email = "geli2001@berkeley.edu"}
 ]
 readme = "README.md"
 license = {text = "MIT"}
-requires-python = ">=3.8"
+requires-python = ">=3.10"
+keywords = ["mcp", "statsig", "feature-flags", "model-context-protocol", "ai", "llm"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Communications",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
 dependencies = [
     "mcp>=1.0.0",
-    "statsig-python-core>=1.0.0",
+    "statsig-python-core>=0.5.0",
     "typing-extensions>=4.0.0",
 ]
 
@@ -20,26 +33,89 @@ dev = [
     "pytest-asyncio>=0.21.0",
     "black>=23.0.0",
     "mypy>=1.0.0",
+    "ruff>=0.1.0",
+    "twine>=4.0.0",
 ]
 
 [project.urls]
-Homepage = "https://github.com/your-org/statsig-mcp"
-Documentation = "https://docs.statsig.com"
-Repository = "https://github.com/your-org/statsig-mcp"
+Homepage = "https://github.com/GeLi2001/statsig-mcp"
+Documentation = "https://github.com/GeLi2001/statsig-mcp#readme"
+Repository = "https://github.com/GeLi2001/statsig-mcp"
+Issues = "https://github.com/GeLi2001/statsig-mcp/issues"
+Changelog = "https://github.com/GeLi2001/statsig-mcp/releases"
+
+[project.scripts]
+statsig-mcp = "statsig_mcp.server:main"
 
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
+[tool.hatch.build.targets.wheel]
+packages = ["statsig_mcp"]
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "/statsig_mcp",
+    "/tests",
+    "/README.md",
+    "/LICENSE",
+]
+
 [tool.black]
 line-length = 88
-target-version = ['py38']
+target-version = ['py310']
+include = '\.pyi?$'
+exclude = '''
+/(
+    \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | _build
+  | buck-out
+  | build
+  | dist
+)/
+'''
+
+[tool.ruff]
+target-version = "py310"
+line-length = 88
+select = ["E", "F", "I", "W", "UP"]
+ignore = []
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
 
 [tool.mypy]
-python_version = "3.8"
+python_version = "3.10"
 warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = true
+show_error_codes = true
+strict_optional = true
 
-[project.scripts]
-statsig-mcp = "statsig_mcp.server:main" 
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = "-v --tb=short"
+
+[tool.coverage.run]
+source = ["statsig_mcp"]
+omit = ["tests/*"]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+] 
