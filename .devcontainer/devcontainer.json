@@ -13,6 +13,12 @@
     "postCreateCommand": "pip install -e .",
     "forwardPorts": [8000],
     "remoteEnv": {
-        "STATSIG_CONSOLE_API_KEY": "${localEnv:STATSIG_CONSOLE_API_KEY}"
+        "STATSIG_CONSOLE_API_KEY": "${containerEnv:STATSIG_CONSOLE_API_KEY}"
+    },
+    "secrets": {
+        "STATSIG_CONSOLE_API_KEY": {
+            "description": "Statsig Console API key for experiment results",
+            "documentationUrl": "https://console.statsig.com"
+        }
     }
 }
