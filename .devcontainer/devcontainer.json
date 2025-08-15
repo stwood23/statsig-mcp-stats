@@ -10,7 +10,8 @@
             ]
         }
     },
-    "postCreateCommand": "pip install -e .",
+    "postCreateCommand": "pip install -e . && echo 'python -m statsig_mcp --api-key $STATSIG_CONSOLE_API_KEY' > start_server.sh && chmod +x start_server.sh",
+    "postStartCommand": "./start_server.sh &",
     "forwardPorts": [8000],
     "remoteEnv": {
         "STATSIG_CONSOLE_API_KEY": "${containerEnv:STATSIG_CONSOLE_API_KEY}"
