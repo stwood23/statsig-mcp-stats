@@ -17,7 +17,7 @@ async def test_import():
         import statsig_mcp
         print("✅ statsig_mcp package imported successfully")
         
-        from statsig_mcp.types import FeatureGateResult, StatsigUserAttributes
+        from statsig_mcp.types import StatsigUserAttributes, ExperimentResultData, MetricResult
         print("✅ types module imported successfully")
         
         from statsig_mcp.console_client import StatsigConsoleClient

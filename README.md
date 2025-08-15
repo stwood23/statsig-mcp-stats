@@ -17,6 +17,18 @@ This MCP server enables AI assistants to interact with Statsig's Console API for
 - 👤 **Team Management**: List team users and get user details by email
 - 📋 **Event Querying**: List available event types in your project
 
+## 🆕 Extended Features
+
+This version includes additional **Experiment Results Analysis** capabilities:
+- 📊 **Statistical Analysis**: Get experiment results with confidence intervals, p-values, and significance tests
+- 💓 **Pulse Monitoring**: Access experiment health metrics and performance indicators  
+- 📈 **Metric Details**: Detailed analysis of individual metrics with statistical significance
+- 📋 **Report Export**: Export comprehensive pulse reports in JSON, CSV, or summary formats
+
+**New MCP Tools:** `get_experiment_results`, `get_experiment_pulse`, `get_metric_details`, `export_pulse_report`
+
+👉 **See [README_EXTENDED.md](README_EXTENDED.md) for complete documentation of the results features.**
+
 ## Installation
 
 ### Using uv (Recommended)

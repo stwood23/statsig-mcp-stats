@@ -464,6 +464,78 @@ async def list_tools() -> list[dict]:
             "description": "List all team members using Console API",
             "inputSchema": {"type": "object", "properties": {}, "required": []},
         },
+        # Experiment Results and Analytics
+        {
+            "name": "get_experiment_results",
+            "description": "Get comprehensive experiment results with statistical analysis",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "experiment_id": {
+                        "type": "string",
+                        "description": "ID of the experiment to get results for",
+                    },
+                    "include_metrics": {
+                        "type": "boolean",
+                        "description": "Include detailed metric breakdowns (optional, default: true)",
+                        "default": True,
+                    },
+                },
+                "required": ["experiment_id"],
+            },
+        },
+        {
+            "name": "get_experiment_pulse", 
+            "description": "Get experiment pulse data with health metrics and performance indicators",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "experiment_id": {
+                        "type": "string",
+                        "description": "ID of the experiment to get pulse data for",
+                    },
+                },
+                "required": ["experiment_id"],
+            },
+        },
+        {
+            "name": "get_metric_details",
+            "description": "Get detailed metric analysis including statistical significance",
+            "inputSchema": {
+                "type": "object", 
+                "properties": {
+                    "metric_id": {
+                        "type": "string",
+                        "description": "ID of the metric to analyze",
+                    },
+                    "experiment_id": {
+                        "type": "string",
+                        "description": "ID of the experiment containing the metric",
+                    },
+                },
+                "required": ["metric_id", "experiment_id"],
+            },
+        },
+        {
+            "name": "export_pulse_report",
+            "description": "Export comprehensive pulse report in specified format",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "experiment_id": {
+                        "type": "string", 
+                        "description": "ID of the experiment to export report for",
+                    },
+                    "format": {
+                        "type": "string",
+                        "description": "Export format (json, csv, summary)",
+                        "enum": ["json", "csv", "summary"],
+                        "default": "json",
+                    },
+                },
+                "required": ["experiment_id"],
+            },
+        },
     ]
 
 
@@ -719,6 +791,30 @@ async def call_tool(name: str, arguments: dict) -> list[dict]:
         elif name == "list_team_users":
             result = await statsig_client.list_team_users()
             return [{"type": "text", "text": _format_team_users_result(result)}]
+
+        # Experiment Results and Analytics
+        elif name == "get_experiment_results":
+            experiment_id = arguments["experiment_id"]
+            include_metrics = arguments.get("include_metrics", True)
+            result = await statsig_client.get_experiment_results(experiment_id, include_metrics)
+            return [{"type": "text", "text": _format_experiment_results(result)}]
+
+        elif name == "get_experiment_pulse":
+            experiment_id = arguments["experiment_id"]
+            result = await statsig_client.get_experiment_pulse(experiment_id)
+            return [{"type": "text", "text": _format_pulse_data(result)}]
+
+        elif name == "get_metric_details":
+            metric_id = arguments["metric_id"]
+            experiment_id = arguments["experiment_id"]
+            result = await statsig_client.get_metric_details(metric_id, experiment_id)
+            return [{"type": "text", "text": _format_metric_details(result)}]
+
+        elif name == "export_pulse_report":
+            experiment_id = arguments["experiment_id"]
+            format_type = arguments.get("format", "json")
+            result = await statsig_client.export_pulse_report(experiment_id, format_type)
+            return [{"type": "text", "text": _format_pulse_report(result, format_type)}]
 
         else:
             return [{"type": "text", "text": f"Unknown tool: {name}"}]
@@ -1031,4 +1127,215 @@ def _format_audit_logs_result(result: dict) -> str:
         output.append(f"   Target: {target}")
         output.append("")
 
+    return "\n".join(output)
+
+
+def _format_experiment_results(result: dict) -> str:
+    """Format experiment results for display."""
+    error = result.get("error")
+    
+    if error:
+        return f"❌ Error getting experiment results: {error}"
+    
+    data = result.get("data", {})
+    experiment_id = data.get("experiment_id", "Unknown")
+    experiment_name = data.get("experiment_name", "Unknown")
+    status = data.get("status", "Unknown")
+    
+    output = [f"📊 Experiment Results: {experiment_name} ({experiment_id})"]
+    output.append(f"   Status: {status}")
+    output.append("")
+    
+    # Primary metrics
+    primary_metrics = data.get("primary_metrics", [])
+    if primary_metrics:
+        output.append("🎯 Primary Metrics:")
+        for metric in primary_metrics:
+            name = metric.get("metric_name", "Unknown")
+            lift = metric.get("lift")
+            p_value = metric.get("p_value")
+            significance = metric.get("significance", "Unknown")
+            
+            output.append(f"   • {name}")
+            if lift is not None:
+                output.append(f"     Lift: {lift:.2%}")
+            if p_value is not None:
+                output.append(f"     P-value: {p_value:.4f}")
+            output.append(f"     Significance: {significance}")
+            output.append("")
+    
+    # Secondary metrics
+    secondary_metrics = data.get("secondary_metrics", [])
+    if secondary_metrics:
+        output.append("📈 Secondary Metrics:")
+        for metric in secondary_metrics:
+            name = metric.get("metric_name", "Unknown")
+            lift = metric.get("lift")
+            significance = metric.get("significance", "Unknown")
+            
+            output.append(f"   • {name}")
+            if lift is not None:
+                output.append(f"     Lift: {lift:.2%}")
+            output.append(f"     Significance: {significance}")
+            output.append("")
+    
+    # Overall recommendation
+    recommendation = data.get("recommendation")
+    if recommendation:
+        output.append(f"💡 Recommendation: {recommendation}")
+    
+    return "\n".join(output)
+
+
+def _format_pulse_data(result: dict) -> str:
+    """Format pulse data for display."""
+    error = result.get("error")
+    
+    if error:
+        return f"❌ Error getting pulse data: {error}"
+    
+    data = result.get("data", {})
+    experiment_id = data.get("experiment_id", "Unknown")
+    health_score = data.get("health_score")
+    
+    output = [f"💓 Experiment Pulse: {experiment_id}"]
+    
+    if health_score is not None:
+        output.append(f"   Health Score: {health_score:.1f}/10")
+        
+        # Add health indicator
+        if health_score >= 8:
+            output.append("   Status: 🟢 Healthy")
+        elif health_score >= 6:
+            output.append("   Status: 🟡 Moderate")
+        else:
+            output.append("   Status: 🔴 Needs Attention")
+    
+    output.append("")
+    
+    # Performance indicators
+    indicators = data.get("performance_indicators", {})
+    if indicators:
+        output.append("📊 Performance Indicators:")
+        for key, value in indicators.items():
+            output.append(f"   • {key}: {value}")
+        output.append("")
+    
+    # Alerts
+    alerts = data.get("alerts", [])
+    if alerts:
+        output.append("⚠️  Alerts:")
+        for alert in alerts:
+            alert_type = alert.get("type", "Unknown")
+            message = alert.get("message", "No details")
+            output.append(f"   • {alert_type}: {message}")
+        output.append("")
+    
+    # Recommendations
+    recommendations = data.get("recommendations", [])
+    if recommendations:
+        output.append("💡 Recommendations:")
+        for rec in recommendations:
+            output.append(f"   • {rec}")
+    
+    return "\n".join(output)
+
+
+def _format_metric_details(result: dict) -> str:
+    """Format metric details for display."""
+    error = result.get("error")
+    
+    if error:
+        return f"❌ Error getting metric details: {error}"
+    
+    data = result.get("data", {})
+    metric_name = data.get("metric_name", "Unknown")
+    metric_type = data.get("metric_type", "Unknown")
+    
+    output = [f"📈 Metric Details: {metric_name}"]
+    output.append(f"   Type: {metric_type}")
+    output.append("")
+    
+    # Values
+    control_value = data.get("control_value")
+    test_value = data.get("test_value")
+    
+    if control_value is not None and test_value is not None:
+        output.append("📊 Values:")
+        output.append(f"   Control: {control_value:,.2f}")
+        output.append(f"   Test: {test_value:,.2f}")
+        output.append("")
+    
+    # Statistical analysis
+    lift = data.get("lift")
+    lift_ci_lower = data.get("lift_ci_lower")
+    lift_ci_upper = data.get("lift_ci_upper")
+    p_value = data.get("p_value")
+    significance = data.get("significance")
+    
+    output.append("📊 Statistical Analysis:")
+    if lift is not None:
+        output.append(f"   Lift: {lift:.2%}")
+    
+    if lift_ci_lower is not None and lift_ci_upper is not None:
+        output.append(f"   95% CI: [{lift_ci_lower:.2%}, {lift_ci_upper:.2%}]")
+    
+    if p_value is not None:
+        output.append(f"   P-value: {p_value:.4f}")
+    
+    if significance:
+        output.append(f"   Significance: {significance}")
+    
+    # Sample sizes
+    sample_control = data.get("sample_size_control")
+    sample_test = data.get("sample_size_test")
+    
+    if sample_control is not None or sample_test is not None:
+        output.append("")
+        output.append("👥 Sample Sizes:")
+        if sample_control is not None:
+            output.append(f"   Control: {sample_control:,}")
+        if sample_test is not None:
+            output.append(f"   Test: {sample_test:,}")
+    
+    return "\n".join(output)
+
+
+def _format_pulse_report(result: dict, format_type: str) -> str:
+    """Format pulse report export for display."""
+    error = result.get("error")
+    
+    if error:
+        return f"❌ Error exporting pulse report: {error}"
+    
+    data = result.get("data", {})
+    
+    output = [f"📋 Pulse Report Export ({format_type.upper()})"]
+    output.append("")
+    
+    if format_type == "json":
+        # For JSON, show a formatted summary
+        experiment_id = data.get("experiment_id", "Unknown")
+        report_date = data.get("report_date", "Unknown")
+        
+        output.append(f"Experiment: {experiment_id}")
+        output.append(f"Report Date: {report_date}")
+        output.append("")
+        output.append("📦 Export contains:")
+        output.append("   • Complete experiment results")
+        output.append("   • Statistical analysis")
+        output.append("   • Health metrics")
+        output.append("   • Performance indicators")
+        
+    elif format_type == "csv":
+        output.append("📊 CSV Export Ready")
+        output.append("   • Metrics data in tabular format")
+        output.append("   • Statistical significance")
+        output.append("   • Confidence intervals")
+        
+    elif format_type == "summary":
+        output.append("📝 Executive Summary")
+        summary = data.get("summary", "No summary available")
+        output.append(f"   {summary}")
+    
     return "\n".join(output)

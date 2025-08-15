@@ -569,6 +569,73 @@ class StatsigConsoleClient:
                 "message": "Failed to list team users via Console API",
             }
 
+    # Experiment Results and Analytics
+    async def get_experiment_results(self, experiment_id: str, include_metrics: bool = True) -> dict[str, Any]:
+        """Get comprehensive experiment results including statistical analysis."""
+        if not self._initialized:
+            raise RuntimeError("Client not initialized. Call initialize() first.")
+        
+        try:
+            url = f"/console/v1/experiments/{experiment_id}/results"
+            params = {"include_metrics": "true" if include_metrics else "false"}
+            response = await self._client.get(url, params=params)
+            response.raise_for_status()
+            data = response.json()
+            logger.info(f"Retrieved results for experiment {experiment_id}")
+            return {"success": True, "data": data, "error": None}
+        except Exception as e:
+            logger.error(f"Error getting experiment results for {experiment_id}: {e}")
+            return {"success": False, "data": {}, "error": str(e)}
+
+    async def get_experiment_pulse(self, experiment_id: str) -> dict[str, Any]:
+        """Get experiment pulse data with health metrics and performance indicators."""
+        if not self._initialized:
+            raise RuntimeError("Client not initialized. Call initialize() first.")
+        
+        try:
+            url = f"/console/v1/experiments/{experiment_id}/pulse"
+            response = await self._client.get(url)
+            response.raise_for_status()
+            data = response.json()
+            logger.info(f"Retrieved pulse data for experiment {experiment_id}")
+            return {"success": True, "data": data, "error": None}
+        except Exception as e:
+            logger.error(f"Error getting experiment pulse for {experiment_id}: {e}")
+            return {"success": False, "data": {}, "error": str(e)}
+
+    async def get_metric_details(self, metric_id: str, experiment_id: str) -> dict[str, Any]:
+        """Get detailed metric analysis including statistical significance."""
+        if not self._initialized:
+            raise RuntimeError("Client not initialized. Call initialize() first.")
+        
+        try:
+            url = f"/console/v1/experiments/{experiment_id}/metrics/{metric_id}"
+            response = await self._client.get(url)
+            response.raise_for_status()
+            data = response.json()
+            logger.info(f"Retrieved metric details for {metric_id} in experiment {experiment_id}")
+            return {"success": True, "data": data, "error": None}
+        except Exception as e:
+            logger.error(f"Error getting metric details for {metric_id} in experiment {experiment_id}: {e}")
+            return {"success": False, "data": {}, "error": str(e)}
+
+    async def export_pulse_report(self, experiment_id: str, format: str = "json") -> dict[str, Any]:
+        """Export comprehensive pulse report in specified format."""
+        if not self._initialized:
+            raise RuntimeError("Client not initialized. Call initialize() first.")
+        
+        try:
+            url = f"/console/v1/experiments/{experiment_id}/pulse/export"
+            params = {"format": format}
+            response = await self._client.get(url, params=params)
+            response.raise_for_status()
+            data = response.json()
+            logger.info(f"Exported pulse report for experiment {experiment_id} in {format} format")
+            return {"success": True, "data": data, "error": None}
+        except Exception as e:
+            logger.error(f"Error exporting pulse report for {experiment_id}: {e}")
+            return {"success": False, "data": {}, "error": str(e)}
+
     async def shutdown(self) -> None:
         """Shutdown the Console API client."""
         if self._client:
