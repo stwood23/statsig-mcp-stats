@@ -27,12 +27,19 @@ This guide helps team members set up the enhanced Statsig MCP server with experi
 ### 4. Create GitHub Codespace  
 - Click green **"Code"** button → **"Codespaces"** → **"Create codespace"**
 - Wait 2-3 minutes for automatic setup
+- **🚀 MCP Server starts automatically!** (runs in background)
 
-### 5. Start the MCP Server
-In your Codespace terminal:
+### 5. Verify Server is Running
+Check that the server started automatically:
 ```bash
-python -m statsig_mcp --api-key $STATSIG_CONSOLE_API_KEY
+# Check if server is running
+ps aux | grep statsig_mcp
+
+# View server logs (optional)
+tail -f mcp_server.log
 ```
+
+**Note:** The server now starts automatically when your Codespace launches - no manual startup required!
 
 ### 6. Configure Cursor
 Update your local `~/.cursor/mcp.json`:
