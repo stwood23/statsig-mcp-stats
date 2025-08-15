@@ -1,0 +1,18 @@
+{
+    "name": "Statsig MCP Server",
+    "image": "mcr.microsoft.com/devcontainers/python:3.11",
+    "features": {},
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "ms-python.python",
+                "ms-python.black-formatter"
+            ]
+        }
+    },
+    "postCreateCommand": "pip install -e .",
+    "forwardPorts": [8000],
+    "remoteEnv": {
+        "STATSIG_CONSOLE_API_KEY": "${localEnv:STATSIG_CONSOLE_API_KEY}"
+    }
+}

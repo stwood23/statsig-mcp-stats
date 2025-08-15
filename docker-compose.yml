@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  statsig-mcp:
+    build: .
+    container_name: statsig-mcp-server
+    ports:
+      - "8000:8000"
+    environment:
+      - STATSIG_CONSOLE_API_KEY=${STATSIG_CONSOLE_API_KEY}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import statsig_mcp; print('healthy')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
